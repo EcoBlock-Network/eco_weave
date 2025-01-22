@@ -46,7 +46,11 @@ impl Tangle {
         true
     }
 
-    pub fn propagate_transaction(&mut self, transaction: Transaction, start_node_id: &str) -> usize {
+    pub fn propagate_transaction(
+        &mut self,
+        transaction: Transaction,
+        start_node_id: &str,
+    ) -> usize {
         if !self.nodes.contains_key(start_node_id) {
             return 0;
         }
