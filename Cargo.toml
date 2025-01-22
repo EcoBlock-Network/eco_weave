@@ -1,0 +1,10 @@
+[package]
+name = "eco_weave"
+version = "0.1.0"
+authors = ["Malo Henry <winrhy@gmail.com>"]
+edition = "2021"
+description = "A high-level Rust library for Tangle algorithms, part of the EcoBlock project."
+repository = "https://github.com/EcoBlock-Network/eco_weave"
+license = "MIT"
+
+[dependencies]
