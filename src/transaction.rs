@@ -43,4 +43,22 @@ mod tests {
         assert_eq!(tx.payload, "Hello, Tangle!");
         assert!(tx.timestamp > 0);
     }
+
+    #[test]
+    fn test_validate_valid_transaction() {
+        let tx = Transaction::new("tx1", "Valid payload");
+        assert!(tx.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_empty_id() {
+        let tx = Transaction::new("", "Payload");
+        assert!(tx.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_empty_payload() {
+        let tx = Transaction::new("tx2", "");
+        assert!(tx.validate().is_err());
+    }
 }
