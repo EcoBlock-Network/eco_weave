@@ -1,4 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
+
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+
 const MAX_PAYLOAD_SIZE: usize = 256;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -6,6 +9,7 @@ pub struct Transaction {
     pub id: String,
     pub payload: String,
     pub timestamp: u64,
+    pub signature: Option<Signature>,
 }
 
 fn is_valid_id(id: &str) -> bool {
@@ -23,6 +27,7 @@ impl Transaction {
             id: id.into(),
             payload: payload.into(),
             timestamp,
+            signature: None,
         }
     }
 
@@ -53,12 +58,32 @@ impl Transaction {
         }
         Ok(())
     }
-}
 
+    pub fn sign(&mut self, signing_key: &SigningKey) {
+        let data = self.serialize();
+        self.signature = Some(signing_key.sign(data.as_bytes()));
+    }
+
+    pub fn validate_signature(&self, verifying_key: &VerifyingKey) -> Result<(), String> {
+        if let Some(signature) = &self.signature {
+            let data = self.serialize();
+            verifying_key
+                .verify(data.as_bytes(), signature)
+                .map_err(|_| "Invalid signature".to_string())
+        } else {
+            Err("Transaction is not signed".to_string())
+        }
+    }
+
+    fn serialize(&self) -> String {
+        format!("{}:{}:{}", self.id, self.payload, self.timestamp)
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::rngs::OsRng;
 
     #[test]
     fn test_transaction_creation() {
@@ -109,7 +134,34 @@ mod tests {
     #[test]
     fn test_validate_timestamp() {
         let mut tx = Transaction::new("tx1", "Payload");
-        tx.timestamp = u64::MAX; // Faux timestamp dans le futur.
+        tx.timestamp = u64::MAX; // Invalid timestamp in the future.
         assert!(tx.validate().is_err());
+    }
+
+    #[test]
+    fn test_sign_and_verify_transaction() {
+        let mut rng = OsRng;
+        let signing_key = SigningKey::generate(&mut rng);
+        let verifying_key = signing_key.verifying_key();
+
+        let mut tx = Transaction::new("tx1", "Payload");
+        tx.sign(&signing_key);
+
+        assert!(tx.signature.is_some());
+        assert!(tx.validate_signature(&verifying_key).is_ok());
+    }
+
+    #[test]
+    fn test_invalid_signature() {
+        let mut rng = OsRng;
+        let signing_key1 = SigningKey::generate(&mut rng);
+        let signing_key2 = SigningKey::generate(&mut rng);
+
+        let verifying_key2 = signing_key2.verifying_key();
+
+        let mut tx = Transaction::new("tx1", "Payload");
+        tx.sign(&signing_key1);
+
+        assert!(tx.validate_signature(&verifying_key2).is_err());
     }
 }
