@@ -10,6 +10,8 @@ pub struct Transaction {
     pub payload: String,
     pub timestamp: u64,
     pub signature: Option<Signature>,
+    pub weight: u32,
+    pub confirmed: bool,
 }
 
 fn is_valid_id(id: &str) -> bool {
@@ -28,6 +30,8 @@ impl Transaction {
             payload: payload.into(),
             timestamp,
             signature: None,
+            weight: 0,
+            confirmed: false,
         }
     }
 
@@ -59,6 +63,11 @@ impl Transaction {
         Ok(())
     }
 
+    pub fn calculate_weight(&self, approvals: usize) -> u32 {
+        // Exemple simple : poids basé sur le nombre d'approbations.
+        (approvals as u32).max(1)
+    }
+
     pub fn sign(&mut self, signing_key: &SigningKey) {
         let data = self.serialize();
         self.signature = Some(signing_key.sign(data.as_bytes()));
@@ -77,6 +86,10 @@ impl Transaction {
 
     fn serialize(&self) -> String {
         format!("{}:{}:{}", self.id, self.payload, self.timestamp)
+    }
+
+    pub fn confirm(&mut self) {
+        self.confirmed = true;
     }
 }
 

@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::{node::Node, Transaction};
 use std::collections::HashMap;
 
@@ -19,6 +21,45 @@ impl Tangle {
             nodes: HashMap::new(),
             transactions: HashMap::new(),
         }
+    }
+
+    pub fn weighted_random_walk(&self, start_id: &str) -> Option<String> {
+        let mut current_id = start_id.to_string();
+        let mut rng = rand::thread_rng();
+
+        while let Some(_transaction) = self.transactions.get(&current_id) {
+            let mut neighbors = vec![];
+
+            for neighbor_id in self.get_neighbors(&current_id) {
+                if let Some(neighbor) = self.transactions.get(&neighbor_id) {
+                    neighbors.push((neighbor_id.clone(), neighbor.weight));
+                }
+            }
+
+            if neighbors.is_empty() {
+                break;
+            }
+
+            let total_weight: u32 = neighbors.iter().map(|(_, weight)| *weight).sum();
+            let choice = rng.gen_range(0..total_weight);
+            let mut cumulative_weight = 0;
+
+            for (neighbor_id, weight) in neighbors {
+                cumulative_weight += weight;
+                if cumulative_weight > choice {
+                    current_id = neighbor_id;
+                    break;
+                }
+            }
+        }
+
+        Some(current_id)
+    }
+
+    fn get_neighbors(&self, transaction_id: &str) -> Vec<String> {
+        self.nodes
+            .get(transaction_id)
+            .map_or(vec![], |node| node.neighbors.clone())
     }
 
     pub fn add_node(&mut self, id: impl Into<String>) -> bool {
@@ -168,5 +209,16 @@ mod tests {
         let mut tangle = Tangle::default();
         let tx = Transaction::new("tx2", "");
         assert!(!tangle.add_transaction(tx)); // Validation échoue.
+    }
+
+    #[test]
+    fn test_weighted_random_walk() {
+        let mut tangle = Tangle::new();
+        tangle.add_transaction(Transaction::new("tx1", "Payload"));
+        tangle.add_transaction(Transaction::new("tx2", "Payload"));
+        tangle.connect_nodes("tx1", "tx2");
+
+        let result = tangle.weighted_random_walk("tx1");
+        assert!(result.is_some());
     }
 }
