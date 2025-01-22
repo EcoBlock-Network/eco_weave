@@ -8,3 +8,4 @@ repository = "https://github.com/EcoBlock-Network/eco_weave"
 license = "MIT"
 
 [dependencies]
+ed25519-dalek = "2.1.1"
