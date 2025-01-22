@@ -1,4 +1,3 @@
-/// Représente un nœud dans le Tangle.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Node {
     pub id: String,

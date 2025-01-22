@@ -20,3 +20,196 @@ Consensus local
 Propagation de la confirmation
     ↓
 Transaction confirmée
+
+# EcoWeave Library Features
+
+## Overview
+EcoWeave provides a set of tools to create, manage, and validate a distributed Tangle structure for IoT environmental data. Below are the features implemented so far, with examples for usage in other projects.
+
+---
+
+## Features
+
+### 1. **Create a Transaction**
+Allows creating a new transaction with a unique ID, payload, and timestamp.
+
+**Example:**
+```rust
+use eco_weave::Transaction;
+
+let tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+println!("{:?}", tx);
+```
+
+---
+
+### 2. **Validate a Transaction**
+Validates the format of a transaction, including:
+- Non-empty ID and payload
+- Valid ID format (alphanumeric with dashes)
+- Payload size within allowed limits
+- Timestamp not in the future
+
+**Example:**
+```rust
+use eco_weave::Transaction;
+
+let tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+match tx.validate() {
+    Ok(_) => println!("Transaction is valid"),
+    Err(err) => println!("Validation error: {}", err),
+}
+```
+
+---
+
+### 3. **Sign a Transaction**
+Signs a transaction using a private key (`SigningKey`) to ensure authenticity.
+
+**Example:**
+```rust
+use eco_weave::Transaction;
+use ed25519_dalek::SigningKey;
+use rand::rngs::OsRng;
+
+let mut rng = OsRng;
+let signing_key = SigningKey::generate(&mut rng);
+
+let mut tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+tx.sign(&signing_key);
+
+println!("Signed transaction: {:?}", tx);
+```
+
+---
+
+### 4. **Validate a Transaction's Signature**
+Verifies the signature of a transaction using a public key (`VerifyingKey`).
+
+**Example:**
+```rust
+use eco_weave::Transaction;
+use ed25519_dalek::VerifyingKey;
+use rand::rngs::OsRng;
+
+let mut rng = OsRng;
+let signing_key = SigningKey::generate(&mut rng);
+let verifying_key = signing_key.verifying_key();
+
+let mut tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+tx.sign(&signing_key);
+
+match tx.validate_signature(&verifying_key) {
+    Ok(_) => println!("Signature is valid"),
+    Err(err) => println!("Invalid signature: {}", err),
+}
+```
+
+---
+
+### 5. **Add a Transaction to the Tangle**
+Adds a validated transaction to the Tangle, ensuring no duplicates.
+
+**Example:**
+```rust
+use eco_weave::{Tangle, Transaction};
+
+let mut tangle = Tangle::new();
+let tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+
+if tangle.add_transaction(tx) {
+    println!("Transaction added to the Tangle.");
+} else {
+    println!("Failed to add transaction.");
+}
+```
+
+---
+
+### 6. **Propagate a Transaction**
+Propagates a transaction to neighboring nodes in the Tangle.
+
+**Example:**
+```rust
+use eco_weave::{Tangle, Transaction};
+
+let mut tangle = Tangle::new();
+tangle.add_node("node1");
+tangle.add_node("node2");
+tangle.connect_nodes("node1", "node2");
+
+let tx = Transaction::new("tx1", "{\"temperature\":25.6}");
+tangle.add_transaction(tx.clone());
+
+let propagated_count = tangle.propagate_transaction(tx, "node1");
+println!("Transaction propagated to {} nodes.", propagated_count);
+```
+
+---
+
+### 7. **Perform Weighted Random Walk (WRW)**
+Selects a transaction from the Tangle based on weights assigned to transactions.
+
+**Example:**
+```rust
+use eco_weave::{Tangle, Transaction};
+
+let mut tangle = Tangle::new();
+tangle.add_node("node1");
+tangle.add_node("node2");
+tangle.connect_nodes("node1", "node2");
+
+let mut tx1 = Transaction::new("tx1", "{\"temperature\":25.6}");
+tx1.weight = 10; // Assign weight
+tangle.add_transaction(tx1);
+
+let mut tx2 = Transaction::new("tx2", "{\"humidity\":60.5}");
+tx2.weight = 20; // Assign weight
+tangle.add_transaction(tx2);
+
+if let Some(selected_tx) = tangle.weighted_random_walk("node1") {
+    println!("Selected transaction: {}", selected_tx);
+} else {
+    println!("No transaction selected.");
+}
+```
+
+---
+
+## How to Use the Library
+
+### 1. Add EcoWeave to Your Project
+Add the library to your `Cargo.toml`:
+```toml
+[dependencies]
+eco_weave = { path = "../eco_weave" }
+```
+
+### 2. Import the Library
+Use the provided modules and structs in your Rust code:
+```rust
+use eco_weave::{Tangle, Transaction};
+```
+
+---
+
+## Next Features
+Planned future updates include:
+- **[🔥 CRITICAL]** Asynchronous propagation of transactions: Implements asynchronous transaction propagation to simulate a real-world distributed IoT network.
+- **[🔥 CRITICAL]** Consensus algorithms for transaction confirmation: Adds a lightweight consensus mechanism like Weighted Random Walk (WRW) or trust scoring.
+- **[🔥 CRITICAL]** Transaction prioritization: Allows prioritization of transactions based on metadata or importance (e.g., critical environmental data).
+
+- **[🔵 HIGH]** Data compression for IoT: Implements formats like CBOR or MessagePack to reduce transaction size and optimize IoT resource usage.
+- **[🔵 HIGH]** Batch validation: Enables batch validation of transactions using `verify_batch` for improved performance.
+- **[🔵 HIGH]** Dynamic node discovery: Adds mechanisms like mDNS or Bluetooth Low Energy for automatic neighbor detection and connection.
+
+- **[🟢 MEDIUM]** Data query API: Exposes an API to retrieve confirmed data from the Tangle for external applications.
+- **[🟢 MEDIUM]** Transaction expiry: Adds a mechanism to remove unconfirmed transactions after a timeout period.
+- **[🟢 MEDIUM]** Visualization tools: Provides tools to export and visualize the Tangle graph (e.g., via JSON or Graphviz).
+
+- **[⚪ LOW]** Encrypted transactions: Adds encryption for transaction payloads to ensure data confidentiality.
+- **[⚪ LOW]** Reputation system: Implements a reputation system for nodes to prioritize reliable nodes in transaction propagation.
+- **[⚪ LOW]** Cross-Tangle communication: Enables synchronization between multiple Tangles for cross-network interoperability.
+
+
+
