@@ -41,8 +41,13 @@ impl Tangle {
         if self.transactions.contains_key(&transaction.id) {
             return false;
         }
-        self.transactions
-            .insert(transaction.id.clone(), transaction);
+
+        if let Err(error) = transaction.validate() {
+            eprintln!("Transaction validation failed: {}", error);
+            return false;
+        }
+
+        self.transactions.insert(transaction.id.clone(), transaction);
         true
     }
 
@@ -126,6 +131,6 @@ mod tests {
         let tx = Transaction::new("tx1", "Hello, Tangle!");
 
         let propagated_count = tangle.propagate_transaction(tx, "missing_node");
-        assert_eq!(propagated_count, 0); // Aucun nœud ne devrait être atteint.
+        assert_eq!(propagated_count, 0);
     }
 }

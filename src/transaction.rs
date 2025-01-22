@@ -20,6 +20,16 @@ impl Transaction {
             timestamp,
         }
     }
+
+    pub fn validate(&self) -> Result<(), String> {
+        if self.id.trim().is_empty() {
+            return Err("Transaction ID cannot be empty".into());
+        }
+        if self.payload.trim().is_empty() {
+            return Err("Transaction payload cannot be empty".into());
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
