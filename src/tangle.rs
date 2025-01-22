@@ -7,6 +7,12 @@ pub struct Tangle {
     pub transactions: HashMap<String, Transaction>,
 }
 
+impl Default for Tangle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Tangle {
     pub fn new() -> Self {
         Self {
@@ -47,7 +53,8 @@ impl Tangle {
             return false;
         }
 
-        self.transactions.insert(transaction.id.clone(), transaction);
+        self.transactions
+            .insert(transaction.id.clone(), transaction);
         true
     }
 
@@ -132,5 +139,34 @@ mod tests {
 
         let propagated_count = tangle.propagate_transaction(tx, "missing_node");
         assert_eq!(propagated_count, 0);
+    }
+
+    #[test]
+    fn test_add_valid_transaction() {
+        let mut tangle = Tangle::default();
+        let tx = Transaction::new("tx1", "Valid payload");
+        assert!(tangle.add_transaction(tx));
+    }
+
+    #[test]
+    fn test_add_duplicate_transaction() {
+        let mut tangle = Tangle::default();
+        let tx = Transaction::new("tx1", "Valid payload");
+        assert!(tangle.add_transaction(tx.clone()));
+        assert!(!tangle.add_transaction(tx)); // Duplication refusée.
+    }
+
+    #[test]
+    fn test_add_invalid_transaction_empty_id() {
+        let mut tangle = Tangle::default();
+        let tx = Transaction::new("", "Payload");
+        assert!(!tangle.add_transaction(tx)); // Validation échoue.
+    }
+
+    #[test]
+    fn test_add_invalid_transaction_empty_payload() {
+        let mut tangle = Tangle::default();
+        let tx = Transaction::new("tx2", "");
+        assert!(!tangle.add_transaction(tx)); // Validation échoue.
     }
 }
