@@ -1,9 +1,4 @@
-#[cfg(test)]
-mod tests {
-    use eco_weave::Node;
-
-    use super::*;
-
+use eco_weave::Node;
     #[test]
     fn test_node_creation() {
         let node = Node::new("node1");
@@ -26,4 +21,4 @@ mod tests {
         node.add_neighbor("node2");
         assert_eq!(node.neighbors.len(), 1);
     }
-}
+
