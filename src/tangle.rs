@@ -2,6 +2,11 @@ use rand::Rng;
 
 use crate::{node::Node, Transaction};
 use std::collections::HashMap;
+use futures::stream::{FuturesUnordered, StreamExt};
+use tokio::time::sleep;
+use std::time::Duration;
+use std::collections::HashSet;
+
 
 #[derive(Debug)]
 pub struct Tangle {
@@ -23,20 +28,28 @@ impl Tangle {
         }
     }
 
-    pub fn weighted_random_walk(&self, start_id: &str) -> Option<String> {
+
+    pub async fn weighted_random_walk(&self, start_id: &str) -> Option<String> {
         let mut current_id = start_id.to_string();
         let mut rng = rand::thread_rng();
+        let mut visited = HashSet::new(); 
+
+        println!("Starting WRW from: {}", start_id);
 
         while let Some(_transaction) = self.transactions.get(&current_id) {
+            visited.insert(current_id.clone()); 
             let mut neighbors = vec![];
 
             for neighbor_id in self.get_neighbors(&current_id) {
-                if let Some(neighbor) = self.transactions.get(&neighbor_id) {
-                    neighbors.push((neighbor_id.clone(), neighbor.weight));
+                if !visited.contains(&neighbor_id) {
+                    if let Some(neighbor) = self.transactions.get(&neighbor_id) {
+                        neighbors.push((neighbor_id.clone(), neighbor.weight));
+                    }
                 }
             }
 
             if neighbors.is_empty() {
+                println!("No unvisited neighbors found for: {}", current_id);
                 break;
             }
 
@@ -47,6 +60,7 @@ impl Tangle {
             for (neighbor_id, weight) in neighbors {
                 cumulative_weight += weight;
                 if cumulative_weight > choice {
+                    println!("Selected neighbor: {}", neighbor_id);
                     current_id = neighbor_id;
                     break;
                 }
@@ -55,6 +69,7 @@ impl Tangle {
 
         Some(current_id)
     }
+        
 
     fn get_neighbors(&self, transaction_id: &str) -> Vec<String> {
         self.nodes
@@ -99,7 +114,7 @@ impl Tangle {
         true
     }
 
-    pub fn propagate_transaction(
+    pub async fn propagate_transaction(
         &mut self,
         transaction: Transaction,
         start_node_id: &str,
@@ -107,25 +122,38 @@ impl Tangle {
         if !self.nodes.contains_key(start_node_id) {
             return 0;
         }
+
         let mut visited = std::collections::HashSet::new();
         let mut queue = vec![start_node_id.to_string()];
         let mut propagated_count = 0;
+
         while let Some(current_node_id) = queue.pop() {
             if visited.contains(&current_node_id) {
                 continue;
             }
             visited.insert(current_node_id.clone());
+
+            // Add transation localy if not already present
             if !self.transactions.contains_key(&transaction.id) {
                 self.add_transaction(transaction.clone());
             }
             propagated_count += 1;
-            if let Some(node) = self.nodes.get(&current_node_id) {
-                for neighbor_id in &node.neighbors {
-                    if !visited.contains(neighbor_id) {
-                        queue.push(neighbor_id.clone());
-                    }
-                }
-            }
+            
+            //Create futures for the neighbors
+            let futures : FuturesUnordered<_> = self
+                .get_neighbors(&current_node_id)
+                .into_iter()
+                .filter(|neighbor_id| !visited.contains(neighbor_id))
+                .map(|neighbor_id| async move {
+                    //Simulate propagation time
+                    sleep(Duration::from_secs(1)).await;
+                    neighbor_id
+                })
+                .collect();
+
+            //Resolve futures
+            let results: Vec<_> = futures.collect().await;
+            queue.extend(results);
         }
         propagated_count
     }
@@ -153,8 +181,8 @@ mod tests {
         assert!(!tangle.add_transaction(tx));
     }
 
-    #[test]
-    fn test_propagate_transaction() {
+    #[tokio::test]
+    async fn test_propagate_transaction() {
         let mut tangle = Tangle::new();
 
         tangle.add_node("node1");
@@ -165,22 +193,26 @@ mod tests {
 
         let tx = Transaction::new("tx1", "Hello, Tangle!");
 
-        let propagated_count = tangle.propagate_transaction(tx.clone(), "node1");
+        let propagated_count = tangle.propagate_transaction(tx.clone(), "node1").await;
         assert_eq!(propagated_count, 3);
 
         assert!(tangle.transactions.contains_key("tx1"));
         assert_eq!(tangle.transactions.len(), 1);
     }
 
-    #[test]
-    fn test_propagate_transaction_with_missing_node() {
+
+    #[tokio::test]
+    async fn test_propagate_transaction_with_missing_node() {
         let mut tangle = Tangle::new();
 
         let tx = Transaction::new("tx1", "Hello, Tangle!");
 
-        let propagated_count = tangle.propagate_transaction(tx, "missing_node");
+        let propagated_count = tangle.propagate_transaction(tx.clone(), "missing_node").await;
+
         assert_eq!(propagated_count, 0);
+        assert!(tangle.transactions.is_empty());
     }
+
 
     #[test]
     fn test_add_valid_transaction() {
@@ -211,14 +243,36 @@ mod tests {
         assert!(!tangle.add_transaction(tx)); // Validation échoue.
     }
 
-    #[test]
-    fn test_weighted_random_walk() {
+    #[tokio::test]
+    async fn test_weighted_random_walk() {
         let mut tangle = Tangle::new();
-        tangle.add_transaction(Transaction::new("tx1", "Payload"));
-        tangle.add_transaction(Transaction::new("tx2", "Payload"));
+
+        // Ajouter les transactions comme nœuds
+        tangle.add_node("tx1");
+        tangle.add_node("tx2");
+
+        // Connecter les transactions
         tangle.connect_nodes("tx1", "tx2");
 
-        let result = tangle.weighted_random_walk("tx1");
-        assert!(result.is_some());
+        // Ajouter les transactions au Tangle
+        let mut tx1 = Transaction::new("tx1", "Payload");
+        let mut tx2 = Transaction::new("tx2", "Payload");
+        tx1.weight = 10;
+        tx2.weight = 20;
+
+        tangle.add_transaction(tx1);
+        tangle.add_transaction(tx2);
+
+        // Lancer le WRW
+        let result = tangle.weighted_random_walk("tx1").await;
+
+        // Vérifiez que le résultat est valide
+        assert!(
+            result == Some("tx1".to_string()) || result == Some("tx2".to_string()),
+            "Unexpected WRW result: {:?}",
+            result
+        );
     }
+
+
 }
