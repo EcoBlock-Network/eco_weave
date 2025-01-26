@@ -18,53 +18,82 @@ fn is_valid_id(id: &str) -> bool {
     id.chars().all(|c| c.is_alphanumeric() || c == '-')
 }
 
+
 impl Transaction {
-    pub fn new(id: impl Into<String>, payload: impl Into<String>) -> Self {
+    pub fn new(id: impl Into<String>, payload: impl Into<String>) -> Result<Self, String> {
+        let id = id.into();
+        if id.trim().is_empty() {
+            return Err("transactionInvalidId".to_string());
+        }
+
+        if !is_valid_id(&id) {
+            return Err("transactionInvalidIdFormat".to_string());
+        }
+    
+        let payload = payload.into();
+        if payload.trim().is_empty() {
+            return Err("transactionInvalidPayload".to_string());
+        }
+    
+        if payload.len() > MAX_PAYLOAD_SIZE {
+            return Err("transactionPayloadTooLarge".to_string());
+        }
+    
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis() as u64;
-
-        Self {
-            id: id.into(),
-            payload: payload.into(),
+    
+        Ok(Self {
+            id,
+            payload,
             timestamp,
             signature: None,
             weight: 0,
             confirmed: false,
-        }
+        })
     }
+    
+
 
     pub fn validate(&self) -> Result<(), String> {
         if self.id.trim().is_empty() {
-            return Err("Transaction ID cannot be empty".into());
+            return Err("transactionInvalidId: ID is empty".into());
         }
+    
         if !is_valid_id(&self.id) {
-            return Err("Transaction ID must be alphanumeric with optional dashes".into());
+            return Err(format!("transactionInvalidIdFormat: {}", self.id));
         }
+    
         if self.payload.trim().is_empty() {
-            return Err("Transaction payload cannot be empty".into());
+            return Err("transactionInvalidPayload: Payload is empty".into());
         }
+    
         if self.payload.len() > MAX_PAYLOAD_SIZE {
             return Err(format!(
-                "Transaction payload exceeds maximum size of {} characters",
+                "transactionPayloadTooLarge: {} bytes (max: {} bytes)",
+                self.payload.len(),
                 MAX_PAYLOAD_SIZE
             ));
         }
-
+    
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis() as u64;
-
+    
         if self.timestamp > now {
-            return Err("Transaction timestamp cannot be in the future".into());
+            return Err(format!(
+                "transactionTimestampInvalid: {} (now: {})",
+                self.timestamp, now
+            ));
         }
+    
         Ok(())
     }
+    
 
     pub fn calculate_weight(&self, approvals: usize) -> u32 {
-        // Exemple simple : poids basé sur le nombre d'approbations.
         (approvals as u32).max(1)
     }
 

@@ -14,7 +14,7 @@ pub fn benchmark_weighted_random_walk(c: &mut Criterion) {
             tangle.connect_nodes(&node_id, &prev_id);
         }
 
-        let tx = Transaction::new(&node_id, "Payload");
+        let tx = Transaction::new(&node_id, "Payload").unwrap();
         tangle.add_transaction(tx);
     }
 

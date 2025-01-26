@@ -1,5 +1,38 @@
 use serde_json::Value;
 
+
+pub fn validate_climate_payload(payload: &str) -> Result<(), String> {
+    let data: Value = serde_json::from_str(payload).map_err(|_| "invalidJson".to_string())?;
+
+    if data.get("temperature").is_some() {
+        validate_temperature(payload)?;
+    }
+    if data.get("humidity").is_some() {
+        validate_humidity(payload)?;
+    }
+    if data.get("pressure").is_some() {
+        validate_pressure(payload)?;
+    }
+    if data.get("dew_point").is_some() {
+        validate_dew_point(payload)?;
+    }
+    if data.get("wind_speed").is_some() {
+        validate_wind_speed(payload)?;
+    }
+    if data.get("wind_direction").is_some() {
+        validate_wind_direction(payload)?;
+    }
+    if data.get("rainfall").is_some() {
+        validate_rainfall(payload)?;
+    }
+    if data.get("uv_index").is_some() {
+        validate_uv_index(payload)?;
+    }
+
+    Ok(())
+}
+
+
 pub fn validate_temperature(payload: &str) -> Result<(), String> {
     let data: Value = serde_json::from_str(payload).map_err(|_| "invalidJson".to_string())?;
     if let Some(temp) = data.get("temperature").and_then(|v| v.as_f64()) {

@@ -1,8 +1,6 @@
-#[cfg(test)]
-mod tests {
-    use super::*;
+use eco_weave::validation::climate::{validate_dew_point, validate_humidity, validate_pressure, validate_rainfall, validate_temperature, validate_uv_index, validate_wind_direction, validate_wind_speed};
 
-    #[test]
+ #[test]
     fn test_validate_temperature() {
         let valid_payload = r#"{"temperature": 75.0}"#;
         assert!(validate_temperature(valid_payload).is_ok());
@@ -88,4 +86,3 @@ mod tests {
         let err = validate_temperature(invalid_payload).unwrap_err();
         assert_eq!(err, "invalidJson");
     }
-}

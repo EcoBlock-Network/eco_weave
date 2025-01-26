@@ -316,6 +316,7 @@ dependencies = [
  "ed25519-dalek",
  "futures",
  "rand",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",
