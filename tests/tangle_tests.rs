@@ -119,6 +119,7 @@ async fn test_weighted_random_walk_with_no_neighbors() {
 }
 
 
+
 #[tokio::test]
 async fn test_weighted_random_walk_complex_graph() {
     let mut tangle = Tangle::new();
