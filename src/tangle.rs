@@ -1,3 +1,4 @@
+use ed25519_dalek::VerifyingKey;
 use rand::Rng;
 
 use crate::{node::Node, Transaction};
@@ -77,12 +78,13 @@ impl Tangle {
             .map_or(vec![], |node| node.neighbors.clone())
     }
 
-    pub fn add_node(&mut self, id: impl Into<String>) -> bool {
+    pub fn add_node(&mut self, id: impl Into<String>, verifying_key: VerifyingKey) -> bool {
         let id = id.into();
         if self.nodes.contains_key(&id) {
+            eprintln!("Node with ID {} already exists", id);
             return false;
         }
-        self.nodes.insert(id.clone(), Node::new(id));
+        self.nodes.insert(id.clone(), Node::new(id, verifying_key));
         true
     }
 
@@ -99,16 +101,31 @@ impl Tangle {
         }
     }
 
+    pub fn get_verifying_key(&self, node_id: &str) -> Option<&VerifyingKey> {
+        self.nodes.get(node_id).map(|node| &node.verifying_key)
+    }
+
     pub fn add_transaction(&mut self, transaction: Transaction) -> bool {
         if self.transactions.contains_key(&transaction.id) {
             return false;
         }
-
+    
         if let Err(error) = transaction.validate() {
             eprintln!("Transaction validation failed: {}", error);
             return false;
         }
-
+    
+        // Suppose que chaque transaction a un ID correspondant à un nœud dans le Tangle
+        if let Some(verifying_key) = self.get_verifying_key(&transaction.id) {
+            if let Err(error) = transaction.validate_signature(verifying_key) {
+                eprintln!("Transaction signature invalid: {}", error);
+                return false;
+            }
+        } else {
+            eprintln!("No verifying key found for transaction: {}", transaction.id);
+            return false;
+        }
+    
         self.transactions
             .insert(transaction.id.clone(), transaction);
         true
@@ -138,7 +155,7 @@ impl Tangle {
                 self.add_transaction(transaction.clone());
             }
             propagated_count += 1;
-            
+
             //Create futures for the neighbors
             let futures : FuturesUnordered<_> = self
                 .get_neighbors(&current_node_id)
