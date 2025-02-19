@@ -20,7 +20,6 @@ fn is_valid_id(id: &str) -> bool {
     id.chars().all(|c| c.is_alphanumeric() || c == '-')
 }
 
-
 impl Transaction {
     pub fn new(id: impl Into<String>, payload: impl Into<String>) -> Result<Self, String> {
         let id = id.into();
@@ -60,8 +59,6 @@ impl Transaction {
         })
     }
 
-
-
     pub fn validate(&self) -> Result<(), String> {
         if self.id.trim().is_empty() {
             return Err("transactionInvalidId: ID is empty".into());
@@ -98,13 +95,15 @@ impl Transaction {
         Ok(())
     }
 
-
     pub fn calculate_weight(&self, approvals: usize) -> u32 {
         (approvals as u32).max(1)
     }
 
     fn serialize(&self) -> String {
-        format!("{}:{}:{}:{}", self.id, self.payload, self.timestamp, self.nonce)
+        format!(
+            "{}:{}:{}:{}",
+            self.id, self.payload, self.timestamp, self.nonce
+        )
     }
 
     pub fn sign(&mut self, signing_key: &SigningKey) {
@@ -127,4 +126,3 @@ impl Transaction {
         self.confirmed = true;
     }
 }
-

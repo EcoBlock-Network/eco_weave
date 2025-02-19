@@ -1,11 +1,8 @@
-
-
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
-    use std::thread::sleep;
     use eco_weave::resilience::caching::TransactionCache;
-
+    use std::thread::sleep;
+    use std::time::Duration;
 
     #[test]
     fn test_transaction_cache() {
@@ -19,7 +16,11 @@ mod tests {
         sleep(Duration::from_secs(3));
         cache.cleanup_expired();
 
-        assert_eq!(cache.cache.len(), 0, "Cache should be empty after expiration");
+        assert_eq!(
+            cache.cache.len(),
+            0,
+            "Cache should be empty after expiration"
+        );
     }
 
     #[test]
@@ -31,11 +32,19 @@ mod tests {
             cache.add_transaction(format!("tx_{}", i), format!("payload_{}", i));
         }
 
-        assert_eq!(cache.cache.len(), 10_000, "Cache should contain 10,000 transactions");
+        assert_eq!(
+            cache.cache.len(),
+            10_000,
+            "Cache should contain 10,000 transactions"
+        );
 
         let _ = sleep(Duration::from_secs(3));
         cache.cleanup_expired();
 
-        assert_eq!(cache.cache.len(), 0, "Cache should be empty after expiration");
+        assert_eq!(
+            cache.cache.len(),
+            0,
+            "Cache should be empty after expiration"
+        );
     }
 }

@@ -1,6 +1,5 @@
 use serde_json::Value;
 
-
 pub fn validate_climate_payload(payload: &str) -> Result<(), String> {
     let data: Value = serde_json::from_str(payload).map_err(|_| "invalidJson".to_string())?;
 
@@ -31,7 +30,6 @@ pub fn validate_climate_payload(payload: &str) -> Result<(), String> {
 
     Ok(())
 }
-
 
 pub fn validate_temperature(payload: &str) -> Result<(), String> {
     let data: Value = serde_json::from_str(payload).map_err(|_| "invalidJson".to_string())?;

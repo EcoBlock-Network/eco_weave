@@ -69,7 +69,7 @@ cargo test
 1. **Fork the repository** on GitHub.
 2. **Create a new feature branch**:
    ```sh
-   git checkout -b feature-your-feature
+   git checkout -b feature/your-feature
    ```
 
 ### **2. Make Your Changes**

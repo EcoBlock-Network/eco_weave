@@ -1,8 +1,8 @@
 pub mod node;
+pub mod resilience;
 pub mod tangle;
 pub mod transaction;
 pub mod validation;
-pub mod resilience;
 
 pub use node::Node;
 pub use tangle::Tangle;

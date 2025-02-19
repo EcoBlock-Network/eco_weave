@@ -36,6 +36,10 @@ mod tests {
         sleep(Duration::from_secs(3)).await;
         let inactive_nodes = monitor.check_inactive_nodes().await;
 
-        assert_eq!(inactive_nodes.len(), 5, "All nodes should be detected as inactive");
+        assert_eq!(
+            inactive_nodes.len(),
+            5,
+            "All nodes should be detected as inactive"
+        );
     }
 }

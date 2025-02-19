@@ -23,5 +23,4 @@ impl TransactionCache {
             now.duration_since(*timestamp).unwrap_or(Duration::ZERO) < self.cache_lifetime
         });
     }
-
 }

@@ -6,7 +6,6 @@ mod tests {
 
     const MAX_PAYLOAD_SIZE: usize = 256;
 
-
     #[test]
     fn test_transaction_creation() {
         let tx = Transaction::new("tx1", r#"{"temperature": 25}"#).unwrap();
@@ -33,7 +32,6 @@ mod tests {
         assert!(tx.is_err());
     }
 
-
     #[test]
     fn test_validate_payload_size() {
         let valid_payload = "a".repeat(MAX_PAYLOAD_SIZE);
@@ -44,7 +42,6 @@ mod tests {
         let tx_invalid = Transaction::new("tx2", invalid_payload);
         assert!(tx_invalid.is_err());
     }
-
 
     #[test]
     fn test_validate_id_format() {
@@ -60,8 +57,6 @@ mod tests {
             "Transaction with invalid ID format should fail"
         );
     }
-
-
 
     #[test]
     fn test_validate_timestamp() {
@@ -96,5 +91,4 @@ mod tests {
 
         assert!(tx.validate_signature(&verifying_key2).is_err());
     }
-
 }

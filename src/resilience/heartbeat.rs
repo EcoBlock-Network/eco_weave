@@ -32,6 +32,4 @@ impl HeartbeatMonitor {
         sleep(self.timeout).await;
         inactive_nodes
     }
-
-    
 }
