@@ -8,7 +8,7 @@ use std::collections::HashSet;
 use std::time::Duration;
 use tokio::time::sleep;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tangle {
     pub nodes: HashMap<String, Node>,
     pub transactions: HashMap<String, Transaction>,
