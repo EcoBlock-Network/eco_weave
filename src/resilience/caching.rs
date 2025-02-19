@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 
 pub struct TransactionCache {
-    cache: HashMap<String, (String, SystemTime)>,
-    cache_lifetime: Duration,
+    pub cache: HashMap<String, (String, SystemTime)>,
+    pub cache_lifetime: Duration,
 }
 
 impl TransactionCache {
