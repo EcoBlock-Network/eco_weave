@@ -21,4 +21,21 @@ mod tests {
         let inactive_nodes = monitor.check_inactive_nodes().await;
         assert_eq!(inactive_nodes.len(), 2, "Both nodes should be inactive");
     }
+
+    #[tokio::test]
+    async fn test_heartbeat_with_disconnections() {
+        let mut monitor = HeartbeatMonitor::new(Duration::from_secs(2));
+
+        for i in 0..5 {
+            monitor.update_heartbeat(format!("node_{}", i));
+        }
+
+        let inactive_nodes = monitor.check_inactive_nodes().await;
+        assert!(inactive_nodes.is_empty(), "No nodes should be inactive yet");
+
+        sleep(Duration::from_secs(3)).await;
+        let inactive_nodes = monitor.check_inactive_nodes().await;
+
+        assert_eq!(inactive_nodes.len(), 5, "All nodes should be detected as inactive");
+    }
 }
