@@ -33,12 +33,11 @@ impl Tangle {
     pub async fn weighted_random_walk(&self, start_id: &str) -> Option<String> {
         let mut current_id = start_id.to_string();
         let mut rng = rand::thread_rng();
-        let mut visited = HashSet::new(); 
+        let mut visited = HashSet::new();
 
-        println!("Starting WRW from: {}", start_id);
 
         while let Some(_transaction) = self.transactions.get(&current_id) {
-            visited.insert(current_id.clone()); 
+            visited.insert(current_id.clone());
             let mut neighbors = vec![];
 
             for neighbor_id in self.get_neighbors(&current_id) {
@@ -50,7 +49,6 @@ impl Tangle {
             }
 
             if neighbors.is_empty() {
-                println!("No unvisited neighbors found for: {}", current_id);
                 break;
             }
 
@@ -61,7 +59,6 @@ impl Tangle {
             for (neighbor_id, weight) in neighbors {
                 cumulative_weight += weight;
                 if cumulative_weight > choice {
-                    println!("Selected neighbor: {}", neighbor_id);
                     current_id = neighbor_id;
                     break;
                 }
@@ -70,9 +67,9 @@ impl Tangle {
 
         Some(current_id)
     }
-        
 
-    fn get_neighbors(&self, transaction_id: &str) -> Vec<String> {
+
+    pub fn get_neighbors(&self, transaction_id: &str) -> Vec<String> {
         self.nodes
             .get(transaction_id)
             .map_or(vec![], |node| node.neighbors.clone())
@@ -81,7 +78,6 @@ impl Tangle {
     pub fn add_node(&mut self, id: impl Into<String>, verifying_key: VerifyingKey) -> bool {
         let id = id.into();
         if self.nodes.contains_key(&id) {
-            eprintln!("Node with ID {} already exists", id);
             return false;
         }
         self.nodes.insert(id.clone(), Node::new(id, verifying_key));
@@ -109,23 +105,19 @@ impl Tangle {
         if self.transactions.contains_key(&transaction.id) {
             return false;
         }
-    
-        if let Err(error) = transaction.validate() {
-            eprintln!("Transaction validation failed: {}", error);
+
+        if let Err(_error) = transaction.validate() {
             return false;
         }
-    
-        // Suppose que chaque transaction a un ID correspondant à un nœud dans le Tangle
+
         if let Some(verifying_key) = self.get_verifying_key(&transaction.id) {
-            if let Err(error) = transaction.validate_signature(verifying_key) {
-                eprintln!("Transaction signature invalid: {}", error);
+            if let Err(_error) = transaction.validate_signature(verifying_key) {
                 return false;
             }
         } else {
-            eprintln!("No verifying key found for transaction: {}", transaction.id);
             return false;
         }
-    
+
         self.transactions
             .insert(transaction.id.clone(), transaction);
         true
@@ -150,29 +142,36 @@ impl Tangle {
             }
             visited.insert(current_node_id.clone());
 
-            // Add transation localy if not already present
             if !self.transactions.contains_key(&transaction.id) {
                 self.add_transaction(transaction.clone());
             }
             propagated_count += 1;
 
-            //Create futures for the neighbors
             let futures : FuturesUnordered<_> = self
                 .get_neighbors(&current_node_id)
                 .into_iter()
                 .filter(|neighbor_id| !visited.contains(neighbor_id))
                 .map(|neighbor_id| async move {
-                    //Simulate propagation time
                     sleep(Duration::from_secs(1)).await;
                     neighbor_id
                 })
                 .collect();
 
-            //Resolve futures
             let results: Vec<_> = futures.collect().await;
             queue.extend(results);
         }
         propagated_count
+    }
+
+    pub fn get_snapshot(&self) -> Vec<(String, Vec<String>)> {
+        let mut snapshot = Vec::new();
+
+        for (tx_id, _transaction) in &self.transactions {
+            let neighbors = self.get_neighbors(tx_id);
+            snapshot.push((tx_id.clone(), neighbors));
+        }
+
+        snapshot
     }
 }
 

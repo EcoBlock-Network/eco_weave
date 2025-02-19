@@ -24,13 +24,13 @@ mod tests {
     #[test]
     fn test_validate_empty_id() {
         let tx = Transaction::new("", r#"{"temperature": 25}"#);
-        assert!(tx.is_err()); // Vérifie que la création échoue.
+        assert!(tx.is_err());
     }
 
     #[test]
     fn test_validate_empty_payload() {
         let tx = Transaction::new("tx2", "");
-        assert!(tx.is_err()); // Vérifie que la création échoue.
+        assert!(tx.is_err());
     }
 
 
@@ -48,14 +48,12 @@ mod tests {
 
     #[test]
     fn test_validate_id_format() {
-        // ID valide
         let tx_valid = Transaction::new("valid-id-123", "Payload").unwrap();
         assert!(
             tx_valid.validate().is_ok(),
             "Transaction with valid ID format should pass"
         );
 
-        // ID invalide
         let tx_invalid = Transaction::new("invalid id!", "Payload");
         assert!(
             tx_invalid.is_err(),
@@ -98,4 +96,5 @@ mod tests {
 
         assert!(tx.validate_signature(&verifying_key2).is_err());
     }
+
 }

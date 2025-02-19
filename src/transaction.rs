@@ -24,6 +24,7 @@ fn is_valid_id(id: &str) -> bool {
 impl Transaction {
     pub fn new(id: impl Into<String>, payload: impl Into<String>) -> Result<Self, String> {
         let id = id.into();
+
         if id.trim().is_empty() {
             return Err("transactionInvalidId".to_string());
         }
@@ -65,15 +66,15 @@ impl Transaction {
         if self.id.trim().is_empty() {
             return Err("transactionInvalidId: ID is empty".into());
         }
-    
+
         if !is_valid_id(&self.id) {
             return Err(format!("transactionInvalidIdFormat: {}", self.id));
         }
-    
+
         if self.payload.trim().is_empty() {
             return Err("transactionInvalidPayload: Payload is empty".into());
         }
-    
+
         if self.payload.len() > MAX_PAYLOAD_SIZE {
             return Err(format!(
                 "transactionPayloadTooLarge: {} bytes (max: {} bytes)",
@@ -81,22 +82,22 @@ impl Transaction {
                 MAX_PAYLOAD_SIZE
             ));
         }
-    
+
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis() as u64;
-    
+
         if self.timestamp > now {
             return Err(format!(
                 "transactionTimestampInvalid: {} (now: {})",
                 self.timestamp, now
             ));
         }
-    
+
         Ok(())
     }
-    
+
 
     pub fn calculate_weight(&self, approvals: usize) -> u32 {
         (approvals as u32).max(1)
@@ -105,12 +106,12 @@ impl Transaction {
     fn serialize(&self) -> String {
         format!("{}:{}:{}:{}", self.id, self.payload, self.timestamp, self.nonce)
     }
-    
+
     pub fn sign(&mut self, signing_key: &SigningKey) {
         let data = self.serialize();
         self.signature = Some(signing_key.sign(data.as_bytes()));
     }
-    
+
     pub fn validate_signature(&self, verifying_key: &VerifyingKey) -> Result<(), String> {
         if let Some(signature) = &self.signature {
             let data = self.serialize();
