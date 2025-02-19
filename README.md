@@ -192,24 +192,3 @@ use eco_weave::{Tangle, Transaction};
 ```
 
 ---
-
-## Next Features
-Planned future updates include:
-- **[🔥 CRITICAL]** Asynchronous propagation of transactions: Implements asynchronous transaction propagation to simulate a real-world distributed IoT network.
-- **[🔥 CRITICAL]** Consensus algorithms for transaction confirmation: Adds a lightweight consensus mechanism like Weighted Random Walk (WRW) or trust scoring.
-- **[🔥 CRITICAL]** Transaction prioritization: Allows prioritization of transactions based on metadata or importance (e.g., critical environmental data).
-
-- **[🔵 HIGH]** Data compression for IoT: Implements formats like CBOR or MessagePack to reduce transaction size and optimize IoT resource usage.
-- **[🔵 HIGH]** Batch validation: Enables batch validation of transactions using `verify_batch` for improved performance.
-- **[🔵 HIGH]** Dynamic node discovery: Adds mechanisms like mDNS or Bluetooth Low Energy for automatic neighbor detection and connection.
-
-- **[🟢 MEDIUM]** Data query API: Exposes an API to retrieve confirmed data from the Tangle for external applications.
-- **[🟢 MEDIUM]** Transaction expiry: Adds a mechanism to remove unconfirmed transactions after a timeout period.
-- **[🟢 MEDIUM]** Visualization tools: Provides tools to export and visualize the Tangle graph (e.g., via JSON or Graphviz).
-
-- **[⚪ LOW]** Encrypted transactions: Adds encryption for transaction payloads to ensure data confidentiality.
-- **[⚪ LOW]** Reputation system: Implements a reputation system for nodes to prioritize reliable nodes in transaction propagation.
-- **[⚪ LOW]** Cross-Tangle communication: Enables synchronization between multiple Tangles for cross-network interoperability.
-
-
-
