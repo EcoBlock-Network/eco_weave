@@ -1,5 +1,5 @@
-use ed25519_dalek::SigningKey;
 use eco_weave::Node;
+use ed25519_dalek::SigningKey;
 
 #[test]
 fn test_node_creation() {

@@ -28,10 +28,6 @@ cargo test
 ---
 
 ## 🔥 Areas for Improvement
-### 1️⃣ **Network Resilience**
-- Implement **transaction redundancy** to prevent data loss when nodes go offline.
-- Introduce a **node heartbeat system** to detect inactive nodes.
-- Optimize node caching for better transaction retention.
 
 ### 2️⃣ **Transaction Propagation**
 - Replace `tokio::time::sleep` with an **efficient gossip protocol** to improve transaction diffusion.
@@ -57,6 +53,15 @@ cargo test
 - Enhance logging with **structured logs** for debugging.
 - Integrate **Graphviz** or similar tools to visualize the Tangle structure.
 
+## DONE Features
+```
+### 1️⃣ **Network Resilience**
+- Implement **transaction redundancy** to prevent data loss when nodes go offline.
+- Introduce a **node heartbeat system** to detect inactive nodes.
+- Optimize node caching for better transaction retention.
+```
+
+
 ---
 
 ## 📜 Contribution Guidelines
@@ -64,7 +69,7 @@ cargo test
 1. **Fork the repository** on GitHub.
 2. **Create a new feature branch**:
    ```sh
-   git checkout -b feature-your-feature
+   git checkout -b feature/your-feature
    ```
 
 ### **2. Make Your Changes**

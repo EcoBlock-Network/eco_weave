@@ -2,12 +2,11 @@ use ed25519_dalek::VerifyingKey;
 use rand::Rng;
 
 use crate::{node::Node, Transaction};
-use std::collections::HashMap;
 use futures::stream::{FuturesUnordered, StreamExt};
-use tokio::time::sleep;
-use std::time::Duration;
+use std::collections::HashMap;
 use std::collections::HashSet;
-
+use std::time::Duration;
+use tokio::time::sleep;
 
 #[derive(Debug)]
 pub struct Tangle {
@@ -29,12 +28,10 @@ impl Tangle {
         }
     }
 
-
     pub async fn weighted_random_walk(&self, start_id: &str) -> Option<String> {
         let mut current_id = start_id.to_string();
         let mut rng = rand::thread_rng();
         let mut visited = HashSet::new();
-
 
         while let Some(_transaction) = self.transactions.get(&current_id) {
             visited.insert(current_id.clone());
@@ -67,7 +64,6 @@ impl Tangle {
 
         Some(current_id)
     }
-
 
     pub fn get_neighbors(&self, transaction_id: &str) -> Vec<String> {
         self.nodes
@@ -147,7 +143,7 @@ impl Tangle {
             }
             propagated_count += 1;
 
-            let futures : FuturesUnordered<_> = self
+            let futures: FuturesUnordered<_> = self
                 .get_neighbors(&current_node_id)
                 .into_iter()
                 .filter(|neighbor_id| !visited.contains(neighbor_id))
@@ -174,4 +170,3 @@ impl Tangle {
         snapshot
     }
 }
-

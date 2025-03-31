@@ -1,5 +1,5 @@
-use ed25519_dalek::SigningKey;
 use eco_weave::{Tangle, Transaction};
+use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 
 #[test]
@@ -13,7 +13,6 @@ fn test_add_node() {
 
     assert!(tangle.nodes.contains_key("node1"));
 }
-
 
 #[test]
 fn test_connect_nodes() {
@@ -65,12 +64,13 @@ async fn test_propagate_transaction() {
 
     let mut transaction = Transaction::new("node1", "test_payload").unwrap();
     transaction.sign(&signing_key1);
-    let propagated_count = tangle.propagate_transaction(transaction.clone(), "node1").await;
+    let propagated_count = tangle
+        .propagate_transaction(transaction.clone(), "node1")
+        .await;
 
     assert_eq!(propagated_count, 2);
     assert!(tangle.transactions.contains_key("node1"));
 }
-
 
 #[test]
 fn test_get_snapshot() {
@@ -103,13 +103,27 @@ fn test_get_snapshot() {
 
     assert_eq!(snapshot.len(), 3);
 
-    let txn_1_neighbors = snapshot.iter().find(|(id, _)| id == "txn-1").unwrap().1.clone();
-    let txn_2_neighbors = snapshot.iter().find(|(id, _)| id == "txn-2").unwrap().1.clone();
-    let txn_3_neighbors = snapshot.iter().find(|(id, _)| id == "txn-3").unwrap().1.clone();
+    let txn_1_neighbors = snapshot
+        .iter()
+        .find(|(id, _)| id == "txn-1")
+        .unwrap()
+        .1
+        .clone();
+    let txn_2_neighbors = snapshot
+        .iter()
+        .find(|(id, _)| id == "txn-2")
+        .unwrap()
+        .1
+        .clone();
+    let txn_3_neighbors = snapshot
+        .iter()
+        .find(|(id, _)| id == "txn-3")
+        .unwrap()
+        .1
+        .clone();
 
     assert!(txn_1_neighbors.contains(&"txn-2".to_string()));
     assert!(txn_2_neighbors.contains(&"txn-1".to_string()));
     assert!(txn_2_neighbors.contains(&"txn-3".to_string()));
     assert!(txn_3_neighbors.contains(&"txn-2".to_string()));
-
 }
