@@ -1,37 +1,34 @@
-# eco_weave
+# EcoWeave Library Documentation
 
+EcoWeave is a Rust library designed to facilitate the creation, management, and validation of a distributed Tangle structure for IoT environmental data. This documentation provides an overview of its features, usage examples, and integration instructions.
 
-Téléphone A (création transaction)
-    ↓
-Transaction créée et signée
-    ↓
-Validation locale
-    ↓
-Ajout au Tangle local (statut : pending)
-    ↓
-Propagation asynchrone aux voisins
-    ↓
-Validation chez les voisins
-    ↓
-Ajout au Tangle des voisins (statut : pending)
-    ↓
-Consensus local
-    ↓
-Propagation de la confirmation
-    ↓
-Transaction confirmée
+---
 
-# EcoWeave Library Features
+## Table of Contents
+1. [Overview](#overview)
+2. [Features](#features)
+    - [Create a Transaction](#1-create-a-transaction)
+    - [Validate a Transaction](#2-validate-a-transaction)
+    - [Sign a Transaction](#3-sign-a-transaction)
+    - [Validate a Transaction's Signature](#4-validate-a-transactions-signature)
+    - [Add a Transaction to the Tangle](#5-add-a-transaction-to-the-tangle)
+    - [Propagate a Transaction](#6-propagate-a-transaction)
+    - [Perform Weighted Random Walk (WRW)](#7-perform-weighted-random-walk-wrw)
+3. [How to Use the Library](#how-to-use-the-library)
+4. [Transaction Lifecycle](#transaction-lifecycle)
+
+---
 
 ## Overview
-EcoWeave provides a set of tools to create, manage, and validate a distributed Tangle structure for IoT environmental data. Below are the features implemented so far, with examples for usage in other projects.
+
+EcoWeave provides a robust framework for managing distributed Tangle structures, enabling secure and efficient data exchange in IoT ecosystems. The library includes tools for transaction creation, validation, signing, propagation, and consensus.
 
 ---
 
 ## Features
 
 ### 1. **Create a Transaction**
-Allows creating a new transaction with a unique ID, payload, and timestamp.
+Create a new transaction with a unique ID, payload, and timestamp.
 
 **Example:**
 ```rust
@@ -44,11 +41,7 @@ println!("{:?}", tx);
 ---
 
 ### 2. **Validate a Transaction**
-Validates the format of a transaction, including:
-- Non-empty ID and payload
-- Valid ID format (alphanumeric with dashes)
-- Payload size within allowed limits
-- Timestamp not in the future
+Ensure the transaction meets the required format and constraints.
 
 **Example:**
 ```rust
@@ -64,7 +57,7 @@ match tx.validate() {
 ---
 
 ### 3. **Sign a Transaction**
-Signs a transaction using a private key (`SigningKey`) to ensure authenticity.
+Sign a transaction using a private key to ensure authenticity.
 
 **Example:**
 ```rust
@@ -84,7 +77,7 @@ println!("Signed transaction: {:?}", tx);
 ---
 
 ### 4. **Validate a Transaction's Signature**
-Verifies the signature of a transaction using a public key (`VerifyingKey`).
+Verify the authenticity of a transaction using a public key.
 
 **Example:**
 ```rust
@@ -108,7 +101,7 @@ match tx.validate_signature(&verifying_key) {
 ---
 
 ### 5. **Add a Transaction to the Tangle**
-Adds a validated transaction to the Tangle, ensuring no duplicates.
+Add a validated transaction to the Tangle, ensuring no duplicates.
 
 **Example:**
 ```rust
@@ -127,7 +120,7 @@ if tangle.add_transaction(tx) {
 ---
 
 ### 6. **Propagate a Transaction**
-Propagates a transaction to neighboring nodes in the Tangle.
+Propagate a transaction to neighboring nodes in the Tangle.
 
 **Example:**
 ```rust
@@ -148,7 +141,7 @@ println!("Transaction propagated to {} nodes.", propagated_count);
 ---
 
 ### 7. **Perform Weighted Random Walk (WRW)**
-Selects a transaction from the Tangle based on weights assigned to transactions.
+Select a transaction from the Tangle based on assigned weights.
 
 **Example:**
 ```rust
@@ -192,3 +185,28 @@ use eco_weave::{Tangle, Transaction};
 ```
 
 ---
+
+## Transaction Lifecycle
+
+Below is a high-level overview of the transaction lifecycle in EcoWeave:
+
+1. **Transaction Creation**: A transaction is created and signed.
+2. **Local Validation**: The transaction is validated locally.
+3. **Pending Status**: The transaction is added to the local Tangle with a "pending" status.
+4. **Asynchronous Propagation**: The transaction is propagated to neighboring nodes.
+5. **Neighbor Validation**: Neighboring nodes validate the transaction.
+6. **Consensus**: A local consensus is reached, and the transaction is confirmed.
+
+```mermaid
+graph TD
+    A[Transaction Created and Signed] --> B[Local Validation]
+    B --> C[Added to Local Tangle (Pending)]
+    C --> D[Asynchronous Propagation]
+    D --> E[Neighbor Validation]
+    E --> F[Consensus Reached]
+    F --> G[Transaction Confirmed]
+```
+
+---
+
+EcoWeave simplifies the management of distributed Tangle structures, making it an ideal choice for IoT applications requiring secure and efficient data exchange.
